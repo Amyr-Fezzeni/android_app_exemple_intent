@@ -1,7 +1,12 @@
 package com.example.tp3;
 
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
@@ -27,28 +32,36 @@ public class MainActivity extends AppCompatActivity {
         btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                String _msg = msgEdit.getText().toString();
-                Intent intent= new Intent(MainActivity.this, MainActivity2.class);
-                intent.putExtra("msg", _msg);
-                MainActivity.this.startActivityForResult(intent, 1);
+                openSomeActivityForResult();
             }
         });
 
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == 1){
-            if (resultCode == RESULT_OK){
-                String reply = data.getStringExtra("reply");
-                if (reply.isEmpty()){
-                    Toast.makeText(this, "Chaine vide!", Toast.LENGTH_LONG).show();
+    ActivityResultLauncher<Intent> someActivityResultLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            new ActivityResultCallback<ActivityResult>() {
+                @Override
+                public void onActivityResult(ActivityResult result) {
+                    if (result.getResultCode() == Activity.RESULT_OK) {
+
+                        String reply = result.getData().getStringExtra("reply");
+                        if (reply.isEmpty()){
+                            Toast.makeText(MainActivity.this, "Chaine vide!", Toast.LENGTH_LONG).show();
+                        }
+                        else{
+                            msg.setText(msg.getText().toString() +"\n\n" + reply);
+                        }
+
+                    }
                 }
-                else{
-                    msg.setText(msg.getText().toString() +"\n\n" + reply);
-                }
-                }
-        }
+            });
+
+    public void openSomeActivityForResult() {
+        Intent intent = new Intent(MainActivity.this, MainActivity2.class);
+        String _msg = msgEdit.getText().toString();
+        intent.putExtra("msg", _msg);
+        someActivityResultLauncher.launch(intent);
     }
+
 }
